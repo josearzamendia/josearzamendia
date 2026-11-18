@@ -10,7 +10,7 @@
 <style>
 :root{--bg:#0b0a09;--cream:#f4d9b1;--c2:rgba(244,217,177,.74);--c3:rgba(244,217,177,.45);--line:rgba(244,217,177,.22);--gold:#c99a4b}
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;scroll-padding-top:64px}
+html{scroll-padding-top:64px}
 body{background:var(--bg);color:var(--cream);font-family:"EB Garamond",Georgia,serif;-webkit-font-smoothing:antialiased}
 .wrap{max-width:640px;margin:0 auto;padding:0 18px}
 header.top{text-align:center;padding:34px 18px 18px}
@@ -52,11 +52,19 @@ footer a{display:inline-block;margin-top:16px;color:var(--cream);font-family:Mon
 <footer><p>Precios en guaraníes</p><p class="leg"><img src="flame.png" alt=""> Especialidad de la casa</p>
 <a href="La_Coqueta_Carta.pdf" download>Descargar carta en PDF</a></footer>
 <script>
-const links=[...document.querySelectorAll('nav a')],map=new Map(links.map(a=>[a.hash.slice(1),a]));
-const secs=[...document.querySelectorAll('section')];let cur=null;
-function upd(){let id=secs[0].id;for(const s of secs){if(s.getBoundingClientRect().top<120)id=s.id}
- let a=map.get(id);if(!a){const i=secs.findIndex(s=>s.id===id);for(let k=i;k>=0&&!a;k--)a=map.get(secs[k].id)}
- if(a&&a!==cur){cur&&cur.classList.remove('on');a.classList.add('on');cur=a;a.scrollIntoView({block:'nearest',inline:'center'})}}
+const nav=document.querySelector('nav'),bar=nav.querySelector('.s');
+const links=[...bar.querySelectorAll('a')],map=new Map(links.map(a=>[a.hash.slice(1),a]));
+const secs=[...document.querySelectorAll('section')];let cur=null,lock=0;
+function mark(a){if(!a||a===cur)return;cur&&cur.classList.remove('on');a.classList.add('on');cur=a;
+ /* mover solo la barra horizontal; scrollIntoView frenaba el desplazamiento de la página */
+ bar.scrollTo({left:a.offsetLeft-(bar.clientWidth-a.offsetWidth)/2,behavior:'smooth'})}
+function upd(){if(Date.now()<lock)return;const off=nav.offsetHeight+24;let id=secs[0].id;
+ for(const s of secs){if(s.getBoundingClientRect().top<=off)id=s.id}
+ let a=map.get(id);if(!a){const i=secs.findIndex(s=>s.id===id);for(let k=i;k>=0&&!a;k--)a=map.get(secs[k].id)}mark(a)}
+links.forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const t=document.getElementById(a.hash.slice(1));
+ mark(a);lock=Date.now()+1200;
+ scrollTo({top:t.getBoundingClientRect().top+scrollY-nav.offsetHeight-8,behavior:'smooth'});
+ history.replaceState(null,'',a.hash)}));
 addEventListener('scroll',upd,{passive:true});upd();
 </script>
 </body></html>
